@@ -1,0 +1,6 @@
+Debug/
+Release/
+ShockShapes.vcproj.blue.stewart.user
+*.dll
+*.exe
+*.dae
