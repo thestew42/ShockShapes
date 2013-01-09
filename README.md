@@ -17,15 +17,15 @@ ShockShapes is distributed using the MIT license. Please read the
 "LICENSE" file for the legal wording.
 
 The code utilizes the pugixml library which is also distributed under the MIT
-license. Visit pugixml.org for more information on this library. pugixml is:
+license. Visit pugixml.org for more information on this library. pugixml is:  
 Copyright (C) 2006-2012, by Arseny Kapoulkine (arseny.kapoulkine@gmail.com)
 
 
 Web Resources
 -------------
 
-GitHub repository:  http://www.github.com/thestew42/ShockShapes
-Website:            http://www.shockray.com
+GitHub repository:  https://www.github.com/thestew42/ShockShapes  
+Website:            http://www.shockray.com  
 
 
 Contact
