@@ -20,6 +20,7 @@
 #include "GBumpFilter.h"
 #include "NormalFilter.h"
 #include "Instance.h"
+#include "TiledGroup.h"
 
 int main(void)
 {
@@ -28,12 +29,12 @@ int main(void)
 	Cube *c = new Cube(4.0f);
 	c->getTransform()->rotate(0.0f, 45.0f, 0.0f);
 
-	Cube *c1 = new Cube(2.0f, 5.0f, 1.0f);
+	Cube *c1 = new Cube(5.0f, 1.0f, 2.0f);
 	c1->addFilter(new Subdivide(3));
 
 	GBumpFilter *bump = new GBumpFilter(Parameter(-0.05f, 0.05f), true);
 	Vector3D dir;
-	dir.x = 0.0f; dir.y = 0.0f; dir.z = -1.0f;
+	dir.x = 0.0f; dir.y = 1.0f; dir.z = 0.0f;
 	bump->setupDirectionConstraint(dir, 0.1f);
 	c1->addFilter(bump);
 
@@ -41,20 +42,11 @@ int main(void)
 	norm_f->enableSoftenThreshold(0.5f);
 	c1->addFilter(norm_f);
 
-	c1->getTransform()->rotate(100.0f, 0.0f, 0.0f);
-	c1->getTransform()->translate(6.0f, 1.0f, 0.0f);
-
-	Group *g = new Group();
-	g->addObject(c);
-	g->addObject(c1);
-
-	g->getTransform()->translate(0.0f, 3.0f, 0.0f);
-
-	scene->addObject(g);
-
-	Instance *c1_inst = new Instance(c1);
-	c1_inst->getTransform()->translate(0.0f, 5.0f, 0.0f);
-	scene->addObject(c1_inst);
+	//Set up tiled group
+	TiledGroup *wall = new TiledGroup("Wall");
+	wall->setBaseObject(c1, 5.15f, 2.15f);
+	wall->setTiledProperties(8, 40.0f, 40.0f, 2.0f);
+	scene->addObject(wall);
 	
 	scene->generate(0);
 	if(scene->save("test.dae")) {

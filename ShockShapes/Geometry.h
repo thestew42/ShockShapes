@@ -253,6 +253,17 @@ public:
 	 * @return A pointer to this object's transform
 	 */
 	Transform *getTransform();
+
+	/**
+	 * Clears the mesh data stored in the object
+	 */
+	void clearMesh();
+
+	/**
+	 * Clones the mesh data into another empty geometry object
+	 * @param g The geometry to clone into. Must be an empty mesh.
+	 */
+	void cloneMesh(Geometry *g);
 };
 
 #endif

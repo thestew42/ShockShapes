@@ -477,3 +477,33 @@ void Geometry::filter()
 	for(int i = 0; i < num_filters; i++)
 		filters[i]->run(this);
 }
+
+//Clears mesh data in the geometry
+void Geometry::clearMesh()
+{
+	vertices.clear();
+	vbuffer_references.clear();
+	normals.clear();
+	nbuffer_references.clear();
+	triangles.clear();
+}
+
+//Clones the mesh data into another geometry
+void Geometry::cloneMesh(Geometry *g)
+{
+	int num_vertices = vertices.size();
+	int num_normals = normals.size();
+	int num_triangles = triangles.size();
+
+	//Clone each vertex
+	for(int i = 0; i < num_vertices; i++)
+		g->addVertex(vertices[i]);
+
+	//Clone each normal
+	for(int i = 0; i < num_normals; i++)
+		g->addNormal(normals[i]);
+
+	//Clone each triangle
+	for(int i = 0; i < num_triangles; i++)
+		g->addTriangle(triangles[i]);
+}

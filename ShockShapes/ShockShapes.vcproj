@@ -221,6 +221,14 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="Groups"
+				>
+				<File
+					RelativePath=".\TiledGroup.cpp"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -288,6 +296,14 @@
 				</File>
 				<File
 					RelativePath=".\Subdivide.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="Groups"
+				>
+				<File
+					RelativePath=".\TiledGroup.h"
 					>
 				</File>
 			</Filter>

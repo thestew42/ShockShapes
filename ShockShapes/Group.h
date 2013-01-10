@@ -65,7 +65,7 @@ public:
 	void addObject(Geometry *g);
 
 	/**
-	 * Generates an sub-objects
+	 * Generates any sub-objects
 	 * @param seed The value to seed the random number generator with
 	 * @param scene The scene that this geometry will belong to
 	 */
