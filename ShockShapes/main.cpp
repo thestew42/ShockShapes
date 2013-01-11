@@ -45,7 +45,7 @@ int main(void)
 	//Set up tiled group
 	TiledGroup *wall = new TiledGroup("Wall");
 	wall->setBaseObject(c1, 5.15f, 2.15f);
-	wall->setTiledProperties(8, 40.0f, 40.0f, 2.0f);
+	wall->setTiledProperties(8, 40.0f, 40.0f, 2.0f, TEM_SCALE);
 	scene->addObject(wall);
 	
 	scene->generate(0);

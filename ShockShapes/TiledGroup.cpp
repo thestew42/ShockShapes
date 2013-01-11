@@ -63,12 +63,13 @@ void TiledGroup::setBaseObject(Geometry *g, float x, float z)
 }
 
 //Set properties for generation
-void TiledGroup::setTiledProperties(int distinct, float x, float z, float x_off)
+void TiledGroup::setTiledProperties(int distinct, float x, float z, float x_off, tile_end_method end_method)
 {
 	num_distinct = distinct;
 	group_x = x;
 	group_z = z;
 	x_offset = x_off;
+	tem = end_method;
 }
 
 //Generate the tiled surface
@@ -83,6 +84,8 @@ void TiledGroup::generate(int seed, Scene *scene)
 		tiles[i] = NULL;
 
 	//Determine starting and ending location in each axis
+	float x_left_bound = -0.5f * group_x;
+	float x_right_bound = 0.5f * group_x;
 	float x_start = -0.5f * group_x + tile_half_x;
 	float z_start = -0.5f * group_z + tile_half_z;
 	float x_end = 0.5f * group_x - tile_half_x;
@@ -99,6 +102,19 @@ void TiledGroup::generate(int seed, Scene *scene)
 			offset -= tile_x;
 		x_location += offset;
 		offset += x_offset;
+
+		//Handle end tiles
+		if(x_location > x_start) {
+			//Determine needed width of end tile
+			float needed_width = x_location - x_start;
+
+			//Add partial tile
+			Geometry *partial_tile;
+			if((partial_tile = getPartialTile(needed_width, seed, scene)) != NULL) {
+				partial_tile->getTransform()->setTranslation(x_left_bound + 0.5f * needed_width, 0.0f, z_location);
+				addObject(partial_tile);
+			}
+		}
 
 		while(x_location < x_end) {
 			//Determine which of the base objects to use
@@ -131,7 +147,51 @@ void TiledGroup::generate(int seed, Scene *scene)
 			x_location += tile_x;
 		}
 
+		//Handle end tile
+		if((x_location - tile_half_x) < x_right_bound) {
+			//Determine needed width of end tile
+			float needed_width = x_right_bound - (x_location - tile_half_x);
+
+			//Add partial tile
+			Geometry *partial_tile;
+			if((partial_tile = getPartialTile(needed_width, seed, scene)) != NULL) {
+				partial_tile->getTransform()->setTranslation(x_right_bound - 0.5f * needed_width, 0.0f, z_location);
+				addObject(partial_tile);
+			}
+		}
+
 		//Increment to next row of tiles
 		z_location += tile_z;
+	}
+}
+
+//Retrieves a partial width tile
+Geometry *TiledGroup::getPartialTile(float width, int seed, Scene *scene)
+{
+	if(tem == TEM_SCALE) {
+		if(partial_tiles.size() == 0) {
+			//Generate
+			base_object->clearMesh();
+			base_object->generate(seed, scene);
+			base_object->filter();
+					
+			Geometry *tile_copy = new Geometry();
+			base_object->cloneMesh(tile_copy);
+
+			//Scale
+			tile_copy->getTransform()->setScale(width / tile_x, 1.0f, 1.0f);
+
+			//Store pointer and return the object
+			partial_tiles.push_back(tile_copy);
+			return tile_copy;
+		} else {
+			//Return instance
+			Instance *tile_inst = new Instance(partial_tiles[0]);
+			tile_inst->getTransform()->setScale(width / tile_x, 1.0f, 1.0f);
+
+			return tile_inst;
+		}
+	} else {
+		return NULL;
 	}
 }
