@@ -229,6 +229,18 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="Utility"
+				>
+				<File
+					RelativePath=".\CSource.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\CSourceLib.cpp"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -304,6 +316,18 @@
 				>
 				<File
 					RelativePath=".\TiledGroup.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="Utility"
+				>
+				<File
+					RelativePath=".\CSource.h"
+					>
+				</File>
+				<File
+					RelativePath=".\CSourceLib.h"
 					>
 				</File>
 			</Filter>

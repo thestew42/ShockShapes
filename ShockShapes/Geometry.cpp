@@ -14,6 +14,7 @@
  */
 
 #include "Geometry.h"
+#include "CSourceLib.h"
 
 int current_id = 0; /**< Incrementing number used for unique IDs. */
 
@@ -450,6 +451,218 @@ void Geometry::writeTriangleData(pugi::xml_node root)
 	p_node.text() = tri_string.c_str();
 
 	return;
+}
+
+//Read geometry data from COLLADA node
+int Geometry::readGeometry(pugi::xml_node root)
+{
+	//Make sure node is valid
+	if(!root)
+		return 1;
+
+	//Clear mesh of any data
+	clearMesh();
+
+	//Array of sources for mesh data
+	CSourceLib sources;
+
+	//Inputs for vertices and triangles
+	CSource *positions = NULL;
+	CSource *normals = NULL;
+	CSource *tex1_coords = NULL;
+
+	//Set to true if normals indexed the same as vertices
+	bool vtxNormals = false;
+	bool triNormals = false;
+	//Set to true if tex coords indexed the same as vertices
+	bool vtxTexCoords = false;
+	bool triTexCoords = false;
+
+	//Offsets in triangle data of each attribute
+	unsigned int vtxOffset, normalOffset, texOffset;
+	unsigned int numInputs;
+
+	//Read name of the geometry
+	pugi::xml_attribute name_attr = root.attribute("name");
+	name = name_attr.value();
+
+	//Get the mesh node
+	pugi::xml_node mesh_node = root.child("mesh");
+	if(!mesh_node)
+		return 2;
+
+	//Iterate over each child of the mesh and process if supported
+	for(pugi::xml_node child = mesh_node.first_child(); child; child = child.next_sibling()) {
+		//Currently not supported: lines, linestrips, polygons, polylist
+		if(!strcmp(child.name(), "source")) {
+			sources.addSource(child);
+		} else if(!strcmp(child.name(), "vertices")) {
+			//Find source id's for each input semetic
+			for(pugi::xml_node v_input = child.first_child(); v_input; v_input = v_input.next_sibling()) {
+				if(!strcmp(v_input.name(), "input")) {
+					if(!strcmp(v_input.attribute("semantic").value(), "POSITION")) {
+						positions = sources.getSource(v_input.attribute("source").value());
+						copyVertexData(positions);
+					} else if(!strcmp(v_input.attribute("semantic").value(), "NORMAL")) {
+						normals = sources.getSource(v_input.attribute("source").value());
+						copyNormalData(normals);
+						vtxNormals = true;
+					} else if(!strcmp(v_input.attribute("semantic").value(), "TEXCOORD")) {
+						tex1_coords = sources.getSource(v_input.attribute("source").value());
+						vtxTexCoords = true;
+					}
+				}
+			}
+		} else if(!strcmp(child.name(), "triangles")) {
+			//Get per triangle inputs
+			numInputs = 0;
+			for(pugi::xml_node t_input = child.first_child(); t_input; t_input = t_input.next_sibling()) {
+				if(!strcmp(t_input.name(), "input")) {
+					numInputs++;
+					if(!strcmp(t_input.attribute("semantic").value(), "VERTEX")) {
+						vtxOffset = atoi(t_input.attribute("offset").value());
+					} else if(!strcmp(t_input.attribute("semantic").value(), "NORMAL")) {
+						normals = sources.getSource(t_input.attribute("source").value());
+						copyNormalData(normals);
+						triNormals = true;
+						normalOffset = atoi(t_input.attribute("offset").value());
+					} else if(!strcmp(t_input.attribute("semantic").value(), "TEXCOORD")) {
+						tex1_coords = sources.getSource(t_input.attribute("source").value());
+						triTexCoords = true;
+						texOffset = atoi(t_input.attribute("offset").value());
+					}
+				}
+			}
+
+			//Buffer for each triangle
+			int bufferSize = numInputs * 3;
+			int *triBuffer = new int[bufferSize];
+
+			//Read the primitive descriptors and add triangles to the mesh
+			int numTriangles = atoi(child.attribute("count").value());
+			if(child.child("p")) {
+				std::string text = child.child("p").text().get();
+				std::istringstream iss(text);
+
+				for(int i = 0; i < numTriangles; i++) {
+					//Read indices into buffer
+					for(int j = 0; j < bufferSize; j++)
+						iss >> triBuffer[j];
+					
+					//Construct the triangle from buffer data
+					Triangle t;
+					t.vertices[0] = triBuffer[vtxOffset];
+					t.vertices[1] = triBuffer[numInputs + vtxOffset];
+					t.vertices[2] = triBuffer[numInputs + numInputs + vtxOffset];
+
+					//Normal indices if they are present
+					if(vtxNormals) {
+						t.normals[0] = triBuffer[vtxOffset];
+						t.normals[1] = triBuffer[numInputs + vtxOffset];
+						t.normals[2] = triBuffer[numInputs + numInputs + vtxOffset]; 
+					} else if(triNormals) {
+						t.normals[0] = triBuffer[normalOffset];
+						t.normals[1] = triBuffer[numInputs + normalOffset];
+						t.normals[2] = triBuffer[numInputs + numInputs + normalOffset];
+					}
+
+					//Copy texture coordinates from source if available
+					if(vtxTexCoords) {
+						Vector2D coord;
+						int index;
+						
+						index = triBuffer[vtxOffset];
+						coord.u = tex1_coords->accessFloatParameter(index, PT_S);
+						coord.v = tex1_coords->accessFloatParameter(index, PT_T);
+						t.uvs[0] = coord;
+
+						index = triBuffer[numInputs + vtxOffset];
+						coord.u = tex1_coords->accessFloatParameter(index, PT_S);
+						coord.v = tex1_coords->accessFloatParameter(index, PT_T);
+						t.uvs[1] = coord;
+
+						index = triBuffer[numInputs + numInputs + vtxOffset];
+						coord.u = tex1_coords->accessFloatParameter(index, PT_S);
+						coord.v = tex1_coords->accessFloatParameter(index, PT_T);
+						t.uvs[2] = coord;
+					} else if(triTexCoords) {
+						Vector2D coord;
+						int index;
+						
+						index = triBuffer[texOffset];
+						coord.u = tex1_coords->accessFloatParameter(index, PT_S);
+						coord.v = tex1_coords->accessFloatParameter(index, PT_T);
+						t.uvs[0] = coord;
+
+						index = triBuffer[numInputs + texOffset];
+						coord.u = tex1_coords->accessFloatParameter(index, PT_S);
+						coord.v = tex1_coords->accessFloatParameter(index, PT_T);
+						t.uvs[1] = coord;
+
+						index = triBuffer[numInputs + numInputs + texOffset];
+						coord.u = tex1_coords->accessFloatParameter(index, PT_S);
+						coord.v = tex1_coords->accessFloatParameter(index, PT_T);
+						t.uvs[2] = coord;
+					}
+
+					//Add triangle to mesh
+					addTriangle(t);
+				}
+			}
+
+			delete triBuffer;
+		} else if(!strcmp(child.name(), "trifans")) {
+			//TODO
+		} else if(!strcmp(child.name(), "tristrips")) {
+			//TODO
+		}
+    }
+
+	if(vtxNormals && triNormals) {
+		//ERROR
+		return 1;
+	}
+
+	if(vtxTexCoords && triTexCoords) {
+		//ERROR
+		return 1;
+	}
+
+	return 0;
+}
+
+//Copy vertex data
+void Geometry::copyVertexData(CSource *source)
+{
+	int nVertices = source->getNumElements();
+	
+	//Copy each vertex
+	for(int i = 0; i < nVertices; i++)
+	{
+		Vector3D v;
+		v.x = source->accessFloatParameter(i, PT_X);
+		v.y = source->accessFloatParameter(i, PT_Y);
+		v.z = source->accessFloatParameter(i, PT_Z);
+
+		addVertex(v);
+	}
+}
+
+//Copy normal data
+void Geometry::copyNormalData(CSource *source)
+{
+	int nNormals = source->getNumElements();
+	
+	//Copy each vertex
+	for(int i = 0; i < nNormals; i++)
+	{
+		Vector3D n;
+		n.x = source->accessFloatParameter(i, PT_X);
+		n.y = source->accessFloatParameter(i, PT_Y);
+		n.z = source->accessFloatParameter(i, PT_Z);
+
+		addNormal(n);
+	}
 }
 
 //Generation function does nothing for default

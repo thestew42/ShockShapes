@@ -27,20 +27,7 @@
 #include "CommonDefs.h"
 #include "Transform.h"
 #include "GeometryFilter.h"
-
-/**
- * @brief Vector structure for storing vertices, normals, etc
- */
-typedef struct {
-	float x, y, z;
-} Vector3D;
-
-/**
- * @brief Vector structure for storing texture coordinates
- */
-typedef struct {
-	float u, v;
-} Vector2D;
+#include "CSource.h"
 
 /**
  * @brief Stores information about a single triangle
@@ -121,6 +108,18 @@ private:
 	 */
 	void writeTriangleData(pugi::xml_node root);
 
+	/**
+	 * Copies source data to vertex buffer
+	 * @param source The source containing vertex positions
+	 */
+	void copyVertexData(CSource *source);
+
+	/**
+	 * Copies source data to normal buffer
+	 * @param source The source containing normal vectors
+	 */
+	void copyNormalData(CSource *source);
+
 protected:
 	/**
 	 * List of filters to apply to this object
@@ -176,6 +175,13 @@ public:
 	 * @return Returns 0 if no errors occur
 	 */
 	virtual int saveInstance(pugi::xml_node root, int *id, Transform *parent);
+
+	/**
+	 * Read mesh data from a COLLADA node into the object's buffers
+	 * @param node The COLLADA geometry node to read the mesh from
+	 * @return Returns 0 if no errors occur
+	 */
+	virtual int readGeometry(pugi::xml_node root);
 
 	/**
 	 * Generates the geometry with the class' parameters

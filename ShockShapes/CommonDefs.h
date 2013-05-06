@@ -30,4 +30,18 @@
 
 #define VERSION_STRING "ShockShapes DEV"
 
+/**
+ * @brief Vector structure for storing vertices, normals, etc
+ */
+typedef struct {
+	float x, y, z;
+} Vector3D;
+
+/**
+ * @brief Vector structure for storing texture coordinates
+ */
+typedef struct {
+	float u, v;
+} Vector2D;
+
 #endif
