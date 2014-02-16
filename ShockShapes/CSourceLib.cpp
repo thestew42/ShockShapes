@@ -24,7 +24,7 @@ CSourceLib::CSourceLib()
 //Destructor
 CSourceLib::~CSourceLib()
 {
-	for(int i = 0; i < sources.size(); i++)
+	for(unsigned int i = 0; i < sources.size(); i++)
 	{
 		delete sources[i];
 		sources[i] = NULL;
@@ -40,7 +40,11 @@ void CSourceLib::addSource(pugi::xml_node root)
 //Get a source by name
 CSource* CSourceLib::getSource(const char *name)
 {
-	for(int i = 0; i < sources.size(); i++)
+	//Remove # if present
+	if(name[0] == '#')
+		name = &(name[1]);
+
+	for(unsigned int i = 0; i < sources.size(); i++)
 	{
 		if(!strcmp(sources[i]->getId(), name))
 			return sources[i];

@@ -115,7 +115,7 @@ void CSource::readFloatArray(pugi::xml_node root)
 	//Read each float from the array
 	std::string text = root.text().get();
 	std::istringstream iss(text);
-	for(int i = 0; i < buffer_size; i++) {
+	for(unsigned int i = 0; i < buffer_size; i++) {
 		iss >> buffer[i];
 	}
 
@@ -136,7 +136,7 @@ void CSource::readIntArray(pugi::xml_node root)
 	//Read each float from the array
 	std::string text = root.text().get();
 	std::istringstream iss(text);
-	for(int i = 0; i < buffer_size; i++) {
+	for(unsigned int i = 0; i < buffer_size; i++) {
 		iss >> buffer[i];
 	}
 
@@ -172,7 +172,7 @@ int CSource::getInt(unsigned int index)
 	if(type == ST_INT && index < buffer_size)
 		return ((int*)data_buffer)[index];
 
-	return 0.0f;
+	return 0;
 }
 
 //Getter for a param
@@ -182,7 +182,7 @@ float CSource::accessFloatParameter(unsigned int element, param_type param_id)
 		//Can only be used if a technique_common node was processed
 		if(params) {
 			if(element < count) {
-				for(int i = 0; i < stride; i++) {
+				for(unsigned int i = 0; i < stride; i++) {
 					if(params[i] == param_id)
 						return ((float*)data_buffer)[element * stride + i];
 				}
@@ -200,7 +200,7 @@ int CSource::getNumParameters()
 }
 
 //Return the type of parameter
-param_type CSource::getParamType(int index)
+param_type CSource::getParamType(unsigned int index)
 {
 	if(index < stride)
 		return params[index];

@@ -95,6 +95,8 @@ private:
 
 	std::string unique_id;	/**< Concatenation of name and id used for COLLADA unique id. */
 
+	bool visible;			/**< If visible is false, this geometry is purely used as a base for instancing. */
+
 	/**
 	 * Writes a vertex data array of this geometry to a COLLADA source node
 	 * @param root pugixml node to add the source node to
@@ -139,6 +141,12 @@ public:
 	 * @return The object's unique string ID
 	 */
 	const char *getUniqueId();
+
+	/**
+	 * Get the name of the object
+	 * @return the object's name
+	 */
+	const char *getName();
 
 	/**
 	 * Adds a vertex to the buffer
@@ -270,6 +278,18 @@ public:
 	 * @param g The geometry to clone into. Must be an empty mesh.
 	 */
 	void cloneMesh(Geometry *g);
+
+	/**
+	 * Sets whether the object is visible or not
+	 * @param visible
+	 */
+	void setVisibility(bool v);
+
+	/**
+	 * Gets the visibility status of the geometry
+	 * @return True if visible
+	 */
+	bool isVisible();
 };
 
 #endif

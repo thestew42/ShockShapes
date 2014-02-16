@@ -23,6 +23,7 @@ Geometry::Geometry()
 :vertices(), vbuffer_references(), normals(), nbuffer_references(), triangles(), name("Geometry"), unique_id(""), t(), filters()
 {
 	id = current_id++;
+	visible = true;
 
 	//Build the unique id for this object
 	std::ostringstream unique_id_stream;
@@ -35,6 +36,7 @@ Geometry::Geometry(const char *iname)
 :vertices(), vbuffer_references(), normals(), nbuffer_references(), triangles(), name(iname), unique_id(""), t(), filters()
 {
 	id = current_id++;
+	visible = true;
 
 	//Build the unique id for this object
 	std::ostringstream unique_id_stream;
@@ -52,6 +54,12 @@ Geometry::~Geometry()
 const char *Geometry::getUniqueId()
 {
 	return unique_id.c_str();
+}
+
+//Get the name
+const char *Geometry::getName()
+{
+	return name.c_str();
 }
 
 //Add a vertex to the buffer
@@ -483,8 +491,30 @@ int Geometry::readGeometry(pugi::xml_node root)
 	unsigned int numInputs;
 
 	//Read name of the geometry
-	pugi::xml_attribute name_attr = root.attribute("name");
-	name = name_attr.value();
+	if(root.attribute("name"))
+	{
+		pugi::xml_attribute name_attr = root.attribute("name");
+		name = name_attr.value();
+	}
+	else
+	{
+		name = "Geometry";
+	}
+
+	if(root.attribute("id"))
+	{
+		pugi::xml_attribute id_attr = root.attribute("id");
+		unique_id = id_attr.value();
+	}
+	else
+	{
+		id = current_id++;
+
+		//Build the unique id for this object
+		std::ostringstream unique_id_stream;
+		unique_id_stream << name << id;
+		unique_id = unique_id_stream.str();
+	}
 
 	//Get the mesh node
 	pugi::xml_node mesh_node = root.child("mesh");
@@ -719,4 +749,16 @@ void Geometry::cloneMesh(Geometry *g)
 	//Clone each triangle
 	for(int i = 0; i < num_triangles; i++)
 		g->addTriangle(triangles[i]);
+}
+
+//Set whether object is visible
+void Geometry::setVisibility(bool v)
+{
+	visible = v;
+}
+
+//Gets visibility
+bool Geometry::isVisible()
+{
+	return visible;
 }

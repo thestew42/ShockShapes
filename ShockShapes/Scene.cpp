@@ -14,6 +14,7 @@
  */
 
 #include "Scene.h"
+#include "Instance.h"
 
 //Default constructor
 Scene::Scene()
@@ -106,7 +107,7 @@ int Scene::save(const char *filename)
 		if(objects[i]->saveGeometry(lib_geometry))
 			return 1;
 
-		if(objects[i]->saveInstance(vscene_node, &id, NULL))
+		if(objects[i]->isVisible() && objects[i]->saveInstance(vscene_node, &id, NULL))
 			return 1;
 	}
 
@@ -115,4 +116,145 @@ int Scene::save(const char *filename)
 		return 1;
 
 	return 0;
+}
+
+//Load a scene from a COLLADA file
+int Scene::load(const char *filename)
+{
+	pugi::xml_document load_file;
+	pugi::xml_parse_result result = load_file.load_file(filename);
+
+	//Exit if the file could not be parsed
+	if(result.status != pugi::xml_parse_status::status_ok)
+	{
+		return 1;
+	}
+
+	//Get the base node of the file
+	if(load_file.child("COLLADA"))
+	{
+		pugi::xml_node root = load_file.child("COLLADA");
+
+		//Get the scene node
+		if(!(root.child("scene")))
+			return 1;
+
+		pugi::xml_node scene_node = root.child("scene");
+
+		//Get the name of the visual scene to load
+		if(!(scene_node.child("instance_visual_scene")))
+			return 1;
+
+		pugi::xml_node instance_scene_node = scene_node.child("instance_visual_scene");
+
+		//Trim off the # character at the beginning of the url
+		const char* scene_url = instance_scene_node.attribute("url").as_string();
+		if(scene_url[0] == '#')
+			scene_url++;
+		else
+			return 1;
+
+		//Read each child node
+		for(pugi::xml_node top_node = root.first_child(); top_node; top_node = top_node.next_sibling())
+		{
+			if(!strcmp(top_node.name(), "asset"))
+			{
+				//TODO: Process metadata
+			}
+			else if(!strcmp(top_node.name(), "library_geometries"))
+			{
+				for(pugi::xml_node geom_node = top_node.first_child(); geom_node; geom_node = geom_node.next_sibling())
+				{
+					if(!strcmp(geom_node.name(), "geometry"))
+					{
+						Geometry *g = new Geometry();
+						if(!g->readGeometry(geom_node))
+						{
+							g->setVisibility(false);
+							addObject(g);
+						}
+						else
+						{
+							delete g;
+						}
+					}
+				}
+			}
+			else if(!strcmp(top_node.name(), "library_visual_scenes"))
+			{
+				//Only load the scene pointed to by instance_visual_scene
+				for(pugi::xml_node vscene_node = top_node.first_child(); vscene_node; vscene_node = vscene_node.next_sibling())
+				{
+					if(!strcmp(vscene_node.name(), "visual_scene") && !strcmp(vscene_node.attribute("id").as_string(), scene_url))
+					{
+						//Iterate over each node in the scene
+						for(pugi::xml_node node = vscene_node.first_child(); node; node = node.next_sibling())
+						{
+							//Add each geometry instance
+							if(!strcmp(node.name(), "node") && node.child("instance_geometry"))
+							{
+								pugi::xml_node geom_inst = node.child("instance_geometry");
+								Geometry *base_geom = findObject(geom_inst.attribute("url").as_string());
+
+								if(base_geom)
+								{
+									Geometry *g = new Instance(base_geom);
+
+									if(node.child("matrix"))
+									{
+										//Transform the object if necessary
+										Transform *t = g->getTransform();
+										Matrix m;
+
+										//Read matrix from COLLADA node
+										pugi::xml_node matrix_node = node.child("matrix");
+										std::string text = matrix_node.text().get();
+										std::istringstream iss(text);
+
+										iss >> m.r0[0]; iss >> m.r0[1]; iss >> m.r0[2]; iss >> m.r0[3];
+										iss >> m.r1[0]; iss >> m.r1[1]; iss >> m.r1[2]; iss >> m.r1[3];
+										iss >> m.r2[0]; iss >> m.r2[1]; iss >> m.r2[2]; iss >> m.r2[3];
+										iss >> m.r3[0]; iss >> m.r3[1]; iss >> m.r3[2]; iss >> m.r3[3];
+
+										t->setMatrix(m);
+									}
+
+									addObject(g);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return 0;
+}
+
+//Clear a scene
+void Scene::clear()
+{
+	for(unsigned int i = 0; i < objects.size(); i++)
+	{
+		delete objects[i];
+	}
+
+	objects.clear();
+}
+
+//Find an object by id
+Geometry *Scene::findObject(const char *id)
+{
+	//Remove # symbol if present in url
+	if(id[0] == '#')
+		id = &(id[1]);
+
+	for(unsigned int i = 0; i < objects.size(); i++)
+	{
+		if(!strcmp(objects[i]->getUniqueId(), id))
+			return objects[i];
+	}
+
+	return NULL;
 }

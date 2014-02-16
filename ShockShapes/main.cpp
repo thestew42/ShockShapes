@@ -54,5 +54,10 @@ int main(void)
 		getchar();
 	}
 
+	//Attempt to copy the file
+	Scene *scene2 = new Scene();
+	scene2->load("test.dae");
+	scene2->save("copy.dae");
+
 	return 0;
 }

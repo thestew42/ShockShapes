@@ -75,14 +75,14 @@ private:
 	 * Buffer containing source data
 	 */
 	void *data_buffer;
-	int buffer_size;
+	unsigned int buffer_size;
 
 	/**
 	 * Array of params for accessor information
 	 */
 	param_type *params;
-	int stride;
-	int count;
+	unsigned int stride;
+	unsigned int count;
 
 	/**
 	 * Reads a float array
@@ -132,7 +132,7 @@ public:
 	 * @param index The parameter index. Max value is getNumParameters() - 1
 	 * @return The type of parameter
 	 */
-	param_type getParamType(int index);
+	param_type getParamType(unsigned int index);
 };
 
 #endif

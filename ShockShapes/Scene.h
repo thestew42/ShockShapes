@@ -64,6 +64,25 @@ public:
 	 * @return Returns 0 if no errors occur
 	 */
 	int save(const char *filename);
+
+	/**
+	 * Loads the scene from a COLLADA file with the supplied name
+	 * @param filename The local file to load from
+	 * @return Returns 0 if no errors occur
+	 */
+	int load(const char *filename);
+
+	/**
+	 * Finds a geometric object by id
+	 * @param id The string to search for
+	 * @param A pointer to the geometry object or NULL
+	 */
+	Geometry *findObject(const char *id);
+
+	/**
+	 * Clears a scene of all data
+	 */
+	void clear();
 };
 
 #endif

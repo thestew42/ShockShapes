@@ -21,6 +21,8 @@ Transform::Transform()
 	xt = yt = zt = 0.0f;
 	xs = ys = zs = 1.0f;
 	xr = yr = zr = 0.0f;
+
+	m.identity();
 }
 
 //Copy constructor
@@ -29,6 +31,8 @@ Transform::Transform(Transform &c)
 	xt = c.xt; yt = c.yt; zt = c.zt;
 	xs = c.xs; ys = c.ys; zs = c.zs;
 	xr = c.xr; yr = c.yr; zr = c.zr;
+
+	m = c.m;
 }
 
 //Destructor
@@ -43,6 +47,8 @@ void Transform::translate(float x, float y, float z)
 	xt += x;
 	yt += y;
 	zt += z;
+
+	m.translate(x, y, z);
 }
 
 void Transform::scale(float x, float y, float z)
@@ -50,6 +56,8 @@ void Transform::scale(float x, float y, float z)
 	xs *= x;
 	ys *= y;
 	zs *= z;
+
+	m.scale(x, y, z);
 }
 
 void Transform::rotate(float x, float y, float z)
@@ -57,6 +65,10 @@ void Transform::rotate(float x, float y, float z)
 	xr += x;
 	yr += y;
 	zr += z;
+
+	m.rotateX(xr);
+	m.rotateX(yr);
+	m.rotateX(zr);
 }
 
 //Setters for each type of transform
@@ -65,6 +77,8 @@ void Transform::setTranslation(float x, float y, float z)
 	xt = x;
 	yt = y;
 	zt = z;
+
+	bake();
 }
 
 void Transform::setScale(float x, float y, float z)
@@ -72,6 +86,8 @@ void Transform::setScale(float x, float y, float z)
 	xs = x;
 	ys = y;
 	zs = z;
+
+	bake();
 }
 
 void Transform::setRotation(float x, float y, float z)
@@ -79,6 +95,8 @@ void Transform::setRotation(float x, float y, float z)
 	xr = x;
 	yr = y;
 	zr = z;
+
+	bake();
 }
 
 //Reset the transform
@@ -87,6 +105,8 @@ void Transform::reset()
 	xt = yt = zt = 0.0f;
 	xs = ys = zs = 1.0f;
 	xr = yr = zr = 0.0f;
+
+	m.identity();
 }
 
 //Combine two transforms
@@ -95,23 +115,31 @@ void Transform::combine(Transform *t)
 	xt += t->xt; yt += t->yt; zt += t->zt;
 	xr += t->xr; yr += t->yr; zr += t->zr;
 	xs *= t->xs; ys *= t->ys; zs *= t->zs;
+
+	bake();
 }
 
-//Bake and save transform
-int Transform::save(pugi::xml_node root)
+//Bake the transform to a matrix
+void Transform::bake()
 {
-	//Build matrix with rotate, scale, translate order
-	Matrix m;
-
+	m.identity();
 	m.translate(xt, yt, zt);
-	
 	m.rotateX(xr);
 	m.rotateY(yr);
 	m.rotateZ(zr);
-	
 	m.scale(xs, ys, zs);
+}
 
+//Save transform
+int Transform::save(pugi::xml_node root)
+{
 	return m.save(root);
+}
+
+//Set matrix
+void Transform::setMatrix(Matrix matrix)
+{
+	m = matrix;
 }
 
 //----------------------Matrix Implementation----------------------------------

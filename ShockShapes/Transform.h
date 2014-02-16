@@ -136,6 +136,11 @@ public:
 	 */
 	float xs, ys, zs;
 
+	/**
+	 * Matrix representing the entire transform
+	 */
+	Matrix m;
+
 	Transform();				/**< Creates empty transform. */
 	Transform(Transform &c);	/**< Copy constructor. */
 
@@ -199,6 +204,17 @@ public:
 	 * Resets the transform
 	 */
 	void reset();
+
+	/**
+	 * Copies the transform from a matrix
+	 * @matrix The matrix to copy from
+	 */
+	void setMatrix(Matrix matrix);
+
+	/**
+	 * Bakes the transform properties to a matrix
+	 */
+	void bake();
 
 	/**
 	 * Bake to a matrix and save to XML
