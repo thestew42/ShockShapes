@@ -70,6 +70,13 @@ public:
 	 * @param scene The scene that this geometry will belong to
 	 */
 	virtual void generate(int seed, Scene *scene);
+
+	/**
+	 * Combines a group into another geometry
+	 * @param g Geometry to combine into
+	 * @param t Transform to apply to this geometry
+	 */
+	virtual void combineInto(Geometry *g, Matrix *parent_t);
 };
 
 #endif

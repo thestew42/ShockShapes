@@ -54,6 +54,13 @@ public:
 	 * An instance cannot be filtered, so this does nothing
 	 */
 	virtual void filter();
+
+	/**
+	 * An instance has to combine it's parent geometry
+	 * @param g Geometry to combine into
+	 * @param t Transform to apply to this geometry
+	 */
+	virtual void combineInto(Geometry *g, Matrix *parent_t);
 };
 
 #endif

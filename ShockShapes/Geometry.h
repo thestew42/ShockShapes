@@ -280,6 +280,13 @@ public:
 	void cloneMesh(Geometry *g);
 
 	/**
+	 * Combines this mesh with another geometric object
+	 * @param g Geometry to copy this object to
+	 * @param t Transform to apply to this mesh
+	 */
+	virtual void combineInto(Geometry *g, Matrix *parent_t);
+
+	/**
 	 * Sets whether the object is visible or not
 	 * @param visible
 	 */

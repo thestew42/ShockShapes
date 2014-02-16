@@ -88,6 +88,11 @@ public:
 	Geometry *findObject(const char *id);
 
 	/**
+	 * Copies all mesh data into a single geometry object
+	 */
+	void consolidate();
+
+	/**
 	 * Clears a scene of all data
 	 */
 	void clear();

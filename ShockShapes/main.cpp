@@ -57,6 +57,9 @@ int main(void)
 	//Attempt to copy the file
 	Scene *scene2 = new Scene();
 	scene2->load("victoria.dae");
+
+	//Flatten the scene to a single object
+	scene2->consolidate();
 	scene2->save("copy.dae");
 
 	return 0;

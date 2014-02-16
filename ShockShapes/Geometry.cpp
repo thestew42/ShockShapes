@@ -172,6 +172,7 @@ void Geometry::cleanUp()
 		if(vbuffer_references[i] == 0) {
 			vbuffer_references.erase(vbuffer_references.begin() + i);
 			vertices.erase(vertices.begin() + i);
+			num_vertices--;
 
 			//Decrement vertex indices greater than i
 			for(int j = 0; j < num_triangles; j++) {
@@ -194,6 +195,7 @@ void Geometry::cleanUp()
 		if(nbuffer_references[i] == 0) {
 			nbuffer_references.erase(nbuffer_references.begin() + i);
 			normals.erase(normals.begin() + i);
+			num_normals--;
 
 			//Decrement normal indices greater than i
 			for(int j = 0; j < num_triangles; j++) {
@@ -761,4 +763,82 @@ void Geometry::setVisibility(bool v)
 bool Geometry::isVisible()
 {
 	return visible;
+}
+
+//Combine with another geometry
+void Geometry::combineInto(Geometry *g, Matrix *parent_t)
+{
+	unsigned int g_num_vertices = g->getNumVertices();
+	unsigned int g_num_normals = g->getNumNormals();
+
+	unsigned int this_num_vertices = getNumVertices();
+	unsigned int this_num_normals = getNumNormals();
+	unsigned int this_num_triangles = getNumTriangles();
+
+	//Compute total transform
+	Matrix total_transform = t.m;
+	if(parent_t != NULL)
+		total_transform.multiply(parent_t);
+
+	//Copy over vertices and normals
+	Vector3D cur_vec;
+	for(unsigned int i = 0; i < this_num_vertices; i++)
+	{
+		//Transform and add vertex
+		cur_vec.x = vertices[i].x * total_transform.r0[0];
+		cur_vec.x += vertices[i].y * total_transform.r0[1];
+		cur_vec.x += vertices[i].z * total_transform.r0[2];
+		cur_vec.x += total_transform.r3[0];
+		
+		cur_vec.y = vertices[i].x * total_transform.r1[0];
+		cur_vec.y += vertices[i].y * total_transform.r1[1];
+		cur_vec.y += vertices[i].z * total_transform.r1[2];
+		cur_vec.y += total_transform.r3[1];
+
+		cur_vec.z = vertices[i].x * total_transform.r2[0];
+		cur_vec.z += vertices[i].y * total_transform.r2[1];
+		cur_vec.z += vertices[i].z * total_transform.r2[2];
+		cur_vec.z += total_transform.r3[2];
+
+		g->addVertex(cur_vec);
+	}
+
+	for(unsigned int i = 0; i < this_num_normals; i++)
+	{
+		//Transform and add vertex
+		cur_vec.x = normals[i].x * total_transform.r0[0];
+		cur_vec.x += normals[i].y * total_transform.r0[1];
+		cur_vec.x += normals[i].z * total_transform.r0[2];
+		cur_vec.x += total_transform.r3[0];
+		
+		cur_vec.y = normals[i].x * total_transform.r1[0];
+		cur_vec.y += normals[i].y * total_transform.r1[1];
+		cur_vec.y += normals[i].z * total_transform.r1[2];
+		cur_vec.y += total_transform.r3[1];
+
+		cur_vec.z = normals[i].x * total_transform.r2[0];
+		cur_vec.z += normals[i].y * total_transform.r2[1];
+		cur_vec.z += normals[i].z * total_transform.r2[2];
+		cur_vec.z += total_transform.r3[2];
+
+		g->addNormal(cur_vec);
+	}
+
+	//Copy over triangles
+	Triangle cur_tri;
+	for(unsigned int i = 0; i < this_num_triangles; i++)
+	{
+		cur_tri = triangles[i];
+
+		//Update indices to account for already present geometry
+		cur_tri.normals[0] += g_num_normals;
+		cur_tri.normals[1] += g_num_normals;
+		cur_tri.normals[2] += g_num_normals;
+
+		cur_tri.vertices[0] += g_num_vertices;
+		cur_tri.vertices[1] += g_num_vertices;
+		cur_tri.vertices[2] += g_num_vertices;
+
+		g->addTriangle(cur_tri);
+	}
 }

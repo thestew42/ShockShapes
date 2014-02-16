@@ -67,3 +67,15 @@ void Instance::filter()
 {
 
 }
+
+//Override combine
+void Instance::combineInto(Geometry *g, Matrix *parent_t)
+{
+	//Compute total transform
+	Matrix total_transform = t.m;
+	if(parent_t != NULL)
+		total_transform.multiply(parent_t);
+
+	//Combine with parent
+	original->combineInto(g, &total_transform);
+}

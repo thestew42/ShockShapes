@@ -98,3 +98,16 @@ void Group::generate(int seed, Scene *scene)
 	for(int i = 0; i < num_objects; i++)
 		objects[i]->generate(seed, scene);
 }
+
+//Override combine
+void Group::combineInto(Geometry *g, Matrix *parent_t)
+{
+	//Compute total transform
+	Matrix total_transform = t.m;
+	if(parent_t != NULL)
+		total_transform.multiply(parent_t);
+
+	//Combine each sub object with g
+	for(unsigned int i = 0; i < objects.size(); i++)
+		objects[i]->combineInto(g, &total_transform);
+}
