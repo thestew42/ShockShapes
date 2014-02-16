@@ -22,6 +22,7 @@
 
 #include "pugixml.hpp"
 #include "Geometry.h"
+#include "Group.h"
 
 /**
  * @brief Manages scene assets and file I/O for scenes
@@ -71,6 +72,13 @@ public:
 	 * @return Returns 0 if no errors occur
 	 */
 	int load(const char *filename);
+
+	/**
+	 * Load a node object from a COLLADA file
+	 * @param node The xml COLLADA node to process
+	 * @param parent Pointer to the group to add any children to or NULL for top level
+	 */
+	void loadNode(pugi::xml_node node, Group *parent);
 
 	/**
 	 * Finds a geometric object by id

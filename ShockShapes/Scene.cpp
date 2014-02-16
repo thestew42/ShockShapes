@@ -191,36 +191,9 @@ int Scene::load(const char *filename)
 						for(pugi::xml_node node = vscene_node.first_child(); node; node = node.next_sibling())
 						{
 							//Add each geometry instance
-							if(!strcmp(node.name(), "node") && node.child("instance_geometry"))
+							if(!strcmp(node.name(), "node"))
 							{
-								pugi::xml_node geom_inst = node.child("instance_geometry");
-								Geometry *base_geom = findObject(geom_inst.attribute("url").as_string());
-
-								if(base_geom)
-								{
-									Geometry *g = new Instance(base_geom);
-
-									if(node.child("matrix"))
-									{
-										//Transform the object if necessary
-										Transform *t = g->getTransform();
-										Matrix m;
-
-										//Read matrix from COLLADA node
-										pugi::xml_node matrix_node = node.child("matrix");
-										std::string text = matrix_node.text().get();
-										std::istringstream iss(text);
-
-										iss >> m.r0[0]; iss >> m.r0[1]; iss >> m.r0[2]; iss >> m.r0[3];
-										iss >> m.r1[0]; iss >> m.r1[1]; iss >> m.r1[2]; iss >> m.r1[3];
-										iss >> m.r2[0]; iss >> m.r2[1]; iss >> m.r2[2]; iss >> m.r2[3];
-										iss >> m.r3[0]; iss >> m.r3[1]; iss >> m.r3[2]; iss >> m.r3[3];
-
-										t->setMatrix(m);
-									}
-
-									addObject(g);
-								}
+								loadNode(node, NULL);
 							}
 						}
 					}
@@ -230,6 +203,77 @@ int Scene::load(const char *filename)
 	}
 
 	return 0;
+}
+
+void Scene::loadNode(pugi::xml_node node, Group *parent)
+{
+	for(pugi::xml_node node_child = node.first_child(); node_child; node_child = node_child.next_sibling())
+	{
+		if(!strcmp(node_child.name(), "instance_geometry"))
+		{
+			Geometry *base_geom = findObject(node_child.attribute("url").as_string());
+
+			if(base_geom)
+			{
+				Geometry *g = new Instance(base_geom);
+
+				if(node.child("matrix"))
+				{
+					//Transform the object if necessary
+					Transform *t = g->getTransform();
+					Matrix m;
+
+					//Read matrix from COLLADA node
+					pugi::xml_node matrix_node = node.child("matrix");
+					std::string text = matrix_node.text().get();
+					std::istringstream iss(text);
+
+					iss >> m.r0[0]; iss >> m.r0[1]; iss >> m.r0[2]; iss >> m.r0[3];
+					iss >> m.r1[0]; iss >> m.r1[1]; iss >> m.r1[2]; iss >> m.r1[3];
+					iss >> m.r2[0]; iss >> m.r2[1]; iss >> m.r2[2]; iss >> m.r2[3];
+					iss >> m.r3[0]; iss >> m.r3[1]; iss >> m.r3[2]; iss >> m.r3[3];
+
+					t->setMatrix(m);
+				}
+
+				if(parent != NULL)
+				{
+					parent->addObject(g);
+				}
+				else
+				{
+					addObject(g);
+				}
+			}
+		}
+		else if(!strcmp(node_child.name(), "node"))
+		{
+			Group *geom_group = new Group();
+
+			if(node.child("matrix"))
+			{
+				//Transform the object if necessary
+				Transform *t = geom_group->getTransform();
+				Matrix m;
+
+				//Read matrix from COLLADA node
+				pugi::xml_node matrix_node = node.child("matrix");
+				std::string text = matrix_node.text().get();
+				std::istringstream iss(text);
+
+				iss >> m.r0[0]; iss >> m.r0[1]; iss >> m.r0[2]; iss >> m.r0[3];
+				iss >> m.r1[0]; iss >> m.r1[1]; iss >> m.r1[2]; iss >> m.r1[3];
+				iss >> m.r2[0]; iss >> m.r2[1]; iss >> m.r2[2]; iss >> m.r2[3];
+				iss >> m.r3[0]; iss >> m.r3[1]; iss >> m.r3[2]; iss >> m.r3[3];
+
+				t->setMatrix(m);
+			}
+
+			loadNode(node_child, geom_group);
+
+			addObject(geom_group);
+		}
+	}
 }
 
 //Clear a scene
